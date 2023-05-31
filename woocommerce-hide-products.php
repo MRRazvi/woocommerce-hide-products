@@ -32,16 +32,19 @@ if (is_admin()) {
 
 // functionality according to option
 $whp_functionality_option = get_field('whp_functionality_option', 'option');
-$whp_user_country = get_field('whp_user_country', 'option');
+$whp_user_country_page_url = get_field('whp_user_country_page_url', 'option');
 
 if ($whp_functionality_option == '1') {
-
+    whp_hide_products();
 } else if ($whp_functionality_option == '2') {
     if (isset($_COOKIE[WHP_USER_COUNTRY])) {
-        // var_dump($_COOKIE[WHP_USER_COUNTRY]);
+        whp_hide_products();
     } else {
-        if ($whp_user_country) {
-            // var_dump($whp_user_country);
+        if ($whp_user_country_page_url) {
+            $actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+            if ($actual_link != $whp_user_country_page_url) {
+                echo '<script>window.location.href = "' . $whp_user_country_page_url . '";</script>';
+            }
         }
     }
 }
@@ -55,4 +58,9 @@ function whp_user_country_func($atts)
     $ret = ob_get_contents();
     ob_end_clean();
     return $ret;
+}
+
+function whp_hide_products()
+{
+    var_dump('hide products');
 }
