@@ -50,5 +50,9 @@ if ($whp_functionality_option == '1') {
 add_shortcode('whp_user_country', 'whp_user_country_func');
 function whp_user_country_func($atts)
 {
-    return "123";
+    ob_start();
+    include_once __DIR__ . '/templates/shortcodes/whp_user_country.php';
+    $ret = ob_get_contents();
+    ob_end_clean();
+    return $ret;
 }
