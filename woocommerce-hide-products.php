@@ -9,6 +9,9 @@
  * Text Domain:       whp
  */
 
+// init
+define('WHP_USER_COUNTRY', 'whp_user_country');
+
 // register options page
 if (function_exists('acf_add_options_page')) {
     acf_add_options_page(
@@ -22,9 +25,30 @@ if (function_exists('acf_add_options_page')) {
     );
 }
 
+// skip if it is admin
+if (is_admin()) {
+    return;
+}
+
+// functionality according to option
 $whp_functionality_option = get_field('whp_functionality_option', 'option');
+$whp_user_country = get_field('whp_user_country', 'option');
+
 if ($whp_functionality_option == '1') {
 
 } else if ($whp_functionality_option == '2') {
-    var_dump('22');
+    if (isset($_COOKIE[WHP_USER_COUNTRY])) {
+        // var_dump($_COOKIE[WHP_USER_COUNTRY]);
+    } else {
+        if ($whp_user_country) {
+            // var_dump($whp_user_country);
+        }
+    }
+}
+
+// [whp_user_country] shortcode
+add_shortcode('whp_user_country', 'whp_user_country_func');
+function whp_user_country_func($atts)
+{
+    return "123";
 }
