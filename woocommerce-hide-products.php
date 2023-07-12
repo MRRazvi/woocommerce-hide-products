@@ -9,10 +9,8 @@
  * Text Domain:       whp
  */
 
-// init
 define('WHP_USER_COUNTRY', 'whp_user_country');
 
-// register options page
 if (function_exists('acf_add_options_page')) {
     acf_add_options_page(
         array(
@@ -25,42 +23,31 @@ if (function_exists('acf_add_options_page')) {
     );
 }
 
-// skip if it is admin
-if (is_admin()) {
-    return;
+add_action('woocommerce_product_options_general_product_data', 'whp_add_hide_in_usa_checkbox');
+function whp_add_hide_in_usa_checkbox()
+{
+    global $product_object;
+
+    woocommerce_wp_checkbox(
+        array(
+            'id' => '_hide_in_usa',
+            'label' => __('Hide In USA', 'text-domain'),
+            'value' => get_post_meta($product_object->get_id(), '_hide_in_usa', true),
+        )
+    );
 }
 
-// functionality according to option
-$whp_functionality_option = get_field('whp_functionality_option', 'option');
-$whp_user_country_page_url = get_field('whp_user_country_page_url', 'option');
+add_action('woocommerce_process_product_meta', 'whp_save_hide_in_usa_checkbox');
+function whp_save_hide_in_usa_checkbox($product_id)
+{
+    $hide_in_usa = isset($_POST['_hide_in_usa']) ? 'yes' : 'no';
+    update_post_meta($product_id, '_hide_in_usa', $hide_in_usa);
+}
 
-if ($whp_functionality_option == '1') {
-    whp_hide_products();
-} else if ($whp_functionality_option == '2') {
-    if (isset($_COOKIE[WHP_USER_COUNTRY])) {
-        whp_hide_products();
-    } else {
-        if ($whp_user_country_page_url) {
-            $actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            if ($actual_link != $whp_user_country_page_url) {
-                echo '<script>window.location.href = "' . $whp_user_country_page_url . '";</script>';
-            }
-        }
+add_action('init', function () {
+    if (is_admin()) {
+        return;
     }
-}
 
-// [whp_user_country] shortcode
-add_shortcode('whp_user_country', 'whp_user_country_func');
-function whp_user_country_func($atts)
-{
-    ob_start();
-    include_once __DIR__ . '/templates/shortcodes/whp_user_country.php';
-    $ret = ob_get_contents();
-    ob_end_clean();
-    return $ret;
-}
 
-function whp_hide_products()
-{
-    var_dump('hide products');
-}
+});
