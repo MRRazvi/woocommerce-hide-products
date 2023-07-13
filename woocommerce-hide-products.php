@@ -44,17 +44,35 @@ function whp_save_hide_in_usa_checkbox($product_id)
     update_post_meta($product_id, '_hide_in_usa', $hide_in_usa);
 }
 
-add_action('init', function () {
-    // if (is_admin()) {
-    //     return;
-    // }
+function exclude_products_in_usa($query)
+{
+    if (is_admin() || current_user_can('administrator')) {
+        return;
+    }
 
-});
+    if (!$query->is_main_query()) {
+        return;
+    }
+
+    if (get_user_country_iso() == 'US') {
+        $query->set(
+            'meta_query',
+            array(
+                array(
+                    'key' => '_hide_in_usa',
+                    'value' => 'yes',
+                    'compare' => '!='
+                )
+            )
+        );
+    }
+}
+
+add_action('pre_get_posts', 'exclude_products_in_usa');
 
 function get_user_country_iso()
 {
     $api_key = 'AIzaSyD1YRYXah31kLjisAR_8ydpSfCuh_JleHQ';
-    $ip = $_SERVER['REMOTE_ADDR'];
 
     $url = "https://www.googleapis.com/geolocation/v1/geolocate?key=$api_key";
     $args = array(
