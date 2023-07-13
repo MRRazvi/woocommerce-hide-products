@@ -45,9 +45,63 @@ function whp_save_hide_in_usa_checkbox($product_id)
 }
 
 add_action('init', function () {
-    if (is_admin()) {
-        return;
-    }
-
+    // if (is_admin()) {
+    //     return;
+    // }
 
 });
+
+function get_user_country_iso()
+{
+    $api_key = 'AIzaSyD1YRYXah31kLjisAR_8ydpSfCuh_JleHQ';
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    $url = "https://www.googleapis.com/geolocation/v1/geolocate?key=$api_key";
+    $args = array(
+        'method' => 'POST',
+        'timeout' => 15,
+        'sslverify' => false,
+        'body' => json_encode(array('considerIp' => 'true')),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+        ),
+    );
+
+    $response = wp_remote_post($url, $args);
+
+    if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (isset($data['location']['lat']) && isset($data['location']['lng'])) {
+            $lat = $data['location']['lat'];
+            $lng = $data['location']['lng'];
+
+            $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&key=$api_key";
+            $response = wp_remote_get($url);
+
+            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+                $body = wp_remote_retrieve_body($response);
+                $data = json_decode($body, true);
+
+                if (isset($data['results'][0]['address_components'])) {
+                    foreach ($data['results'][0]['address_components'] as $component) {
+                        if (in_array('country', $component['types'])) {
+                            return $component['short_name']; // ISO country code
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+function dd($data)
+{
+    echo '<pre>';
+    var_dump($data);
+    echo '<pre>';
+    die;
+}
